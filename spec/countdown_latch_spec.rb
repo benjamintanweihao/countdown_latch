@@ -1,4 +1,5 @@
 require 'spec_helper'
+require 'sample/chucky'
 
 module CountdownLatch
 
@@ -47,26 +48,37 @@ module CountdownLatch
     it "#await will wait for threads to finish their work" do
       latch = CountdownLatch.new(3)
 
-      x = "foo"
+      x = []
       Thread.new do
-        x = "bar"
+        x << "bar"
         latch.count_down
       end
 
+      # sleep(0.01)
+
       Thread.new do
-        x = "baz"
+        x << "baz"
         latch.count_down
       end
 
+      # sleep(0.01)
+
       Thread.new do
-        x = "qux"
+        x << "qux"
         latch.count_down
       end
 
       latch.await
 
       expect(latch.count).to eq(0)
-      expect(x).to eq("qux")
+      expect(x.length).to eq(3)
+    end
+
+    xit "sample run", :speed => 'slow' do
+      chucky = Chucky.new
+      facts = chucky.get_facts(5)
+
+      expect(facts.size).to eq(5)
     end
 
   end

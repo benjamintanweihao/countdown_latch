@@ -4,7 +4,6 @@ require "thread"
 module CountdownLatch
 
   class CountdownLatch
-    attr_reader :count
 
     def initialize(count)
       if count.is_a?(Fixnum) && count >= 0
@@ -18,21 +17,23 @@ module CountdownLatch
 
     def count_down
       @mutex.synchronize {
-        unless @count == 0
-          @count -= 1
+        if @count.zero?
+          @condition.signal
         else
-          # NOTE: calling `signal` is wrong because this only wakes _one_
-          #       of the waiting threads.
-          # @condition.signal
-          @condition.broadcast
+          @count -= 1
         end
+      }
+    end
+
+    def count
+      @mutex.synchronize {
+        @count
       }
     end
 
     def await
       @mutex.synchronize {
-        # _wait_ takes in a mutex. this is when we can introduce the mutex.
-        @condition.wait(@mutex)
+        @condition.wait(@mutex) if @count > 0
       }
     end
 
